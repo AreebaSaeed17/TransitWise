@@ -20,15 +20,15 @@ public class Route {
 
     // getters for each attribute matching their data type
     public String getRouteId()       
-    { return routeId; }
+        { return routeId; }
     public String getOrigin()       
-     { return origin; }
+        { return origin; }
     public String getDestination()   
-    { return destination; }
+        { return destination; }
     public double getBaseFare()      
-    { return baseFare; }
+        { return baseFare; }
     public String getDepartureTime() 
-    { return departureTime; }
+        { return departureTime; }
 
     // Tostring method to print out the attributes
     @Override

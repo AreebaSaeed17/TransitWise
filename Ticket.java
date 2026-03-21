@@ -31,19 +31,19 @@ public class Ticket {
     }
 
     public String getTicketId()      
-    { return ticketId; }
+        { return ticketId; }
     public User getUser()              
-    { return user; }
+        { return user; }
     public Bus getBus()               
-    { return bus; }
+        { return bus; }
     public int getSeatNumber()         
-    { return seatNumber; }
+        { return seatNumber; }
     public LocalDate getTravelDate()   
-    { return travelDate; }
+        { return travelDate; }
     public LocalDateTime getBookingTime() 
-    { return bookingTime; }
+        { return bookingTime; }
     public double getOriginalFare()    
-    { return originalFare; }
+        { return originalFare; }
     public double getAmountPaid()      
-    { return amountPaid; }
+        { return amountPaid; }
 }

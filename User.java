@@ -20,14 +20,22 @@ public class User {
     }
 
     // Getters
-    public String getName()           { return name; }
-    public String getCnic()           { return cnic; }
-    public String getPhone()          { return phone; }
-    public String getPassword()       { return password; }
-    public double getWalletBalance()  { return walletBalance; }
-    public List<Ticket> getHistory()  { return bookingHistory; }
+    public String getName()           
+        { return name; }
+    public String getCnic()           
+        { return cnic; }
+    public String getPhone()          
+        { return phone; }
+    public String getPassword()       
+        { return password; }
+    public double getWalletBalance()  
+        { return walletBalance; }
+    public List<Ticket> getHistory()  
+        { return bookingHistory; }
 
     // Setters
-    public void setWalletBalance(double b) { this.walletBalance = b; }
-    public void addTicket(Ticket t)        { bookingHistory.add(t); }
+    public void setWalletBalance(double b) 
+        { this.walletBalance = b; }
+    public void addTicket(Ticket t)        
+        { bookingHistory.add(t); }
 }
