@@ -19,7 +19,7 @@ public class User {
         this.bookingHistory = new ArrayList<>();
     }
 
-    // Getters
+     // Getters
     public String getName()           
         { return name; }
     public String getCnic()           
