@@ -1,5 +1,3 @@
-public package model;
-
 // class for each bus which will become specific to each route by creating objects
 public class Bus {
     private String busId;   // id for a bus to book and get details of

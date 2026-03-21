@@ -1,5 +1,3 @@
-public package model;
-
 // the class for route details
 public class Route {
     // creating private attributes & public getter/setter
