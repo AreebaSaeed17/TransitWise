@@ -4,7 +4,7 @@ import java.util.List;
 // creating the class for user info
 public class User {
     private String name;
-    private String cnic;       // 13-digit string
+    private String cnic;       // 13 digit string
     private String phone;      // again a string of numbers
     private String password;
     private double walletBalance;

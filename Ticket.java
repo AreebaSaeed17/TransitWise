@@ -4,6 +4,8 @@ import java.time.LocalDateTime;
 // class for a ticket detailing and creation
 public class Ticket {
     private String ticketId;
+    // we need full fledge objects of user & bus to exist in this class
+    // inheritence isnt making any sense here
     // object of user class
     private User user;
     // object of bus class 
@@ -22,7 +24,7 @@ public class Ticket {
         this.bus = bus;
         this.seatNumber = seatNumber;
         this.travelDate = travelDate;
-        // getting the exact time of getting the ticket
+        // getting the exact time of booking the ticket
         this.bookingTime = LocalDateTime.now();
         this.originalFare = originalFare;
         this.amountPaid = amountPaid;
