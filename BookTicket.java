@@ -68,20 +68,22 @@ public class BookTicket {
             return null;   
         }
 
-        // 
+        // if above was all passed then give the ticket to user
         bus.bookSeat(seatNo);
 
-        // step 5 - generate unique ticket ID e.g. TW-A1B2C3D4
+        // now create a ticket ID using UUID class e.g. TW-ABC56DHW
+        // im storing it in a string and making it capital 
         String randomPart = UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+        // im adding TW for my project name TransitWise
         String ticketId = "TW-" + randomPart;
 
-        // step 6 - create ticket object
+        // creating ticket object
         Ticket ticket = new Ticket(ticketId, user, bus, seatNo, travelDate, originalFare, finalFare);
 
-        // step 7 - save ticket in user's history
+        // now save the ticket in user's history so that they can buy more tickets later on
         user.addTicket(ticket);
 
-        // step 8 - return the completed ticket
+        // return the ticket that the user just bought 
         return ticket;
     }
 } 
