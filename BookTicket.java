@@ -31,11 +31,19 @@ public class BookTicket {
     // the between takes 2 arguments and checks no of days btw them
     public double getDiscountedFare(double baseFare, LocalDate travelDate) {
         long daysLeft = ChronoUnit.DAYS.between(LocalDate.now(), travelDate);
-        double discountedFare = DiscountCalculator.applyDiscount(baseFare, daysLeft);
+
+        /*
+        the discounted price will be calculated by applying the algorithm defined 
+        in discount class 
+        it uses the method from that class and days left are passed using above variable
+        */
+        double discountedFare = discountCalculator.applyDiscount(baseFare, daysLeft);
+        // simply return the discounted price
         return discountedFare;
     }
 
-    // main booking method
+
+    // main method
     public Ticket bookTicket(User user, Bus bus, int seatNo, LocalDate travelDate) {
 
         // step 1 - check if seat is free
