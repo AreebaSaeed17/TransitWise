@@ -42,14 +42,16 @@ public class BookTicket {
         return discountedFare;
     }
 
-
     // main method
     public Ticket bookTicket(User user, Bus bus, int seatNo, LocalDate travelDate) {
 
-        // step 1 - check if seat is free
+        // first ill check if seat requested by user is available or not
+        // this method returns boolean from user class so ill store it in a boolean var
+        // ill pass the seat no and apply alg on that
         boolean seatFree = bus.isSeatAvailable(seatNo);
+        // just stop if seat not free 
         if (!seatFree) {
-            return null;   // seat already taken, stop here
+            return null;  
         }
 
         // step 2 - calculate how much to charge
