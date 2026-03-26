@@ -8,11 +8,7 @@ public class TicketGenerator {
     // I want to return instead of System.out.println
     // so that i can easily call this in main instead of rechecking how to pass it
     public static String generate(Ticket t) {
-
-        // making a line at top and bottom to make it look neater 
-        // ive made the variable formatting_line so that i can use it in return operation
-
-    String formatting_line = "=============================================";
+        
     // to print the route Ive made the route variable
     // I enter a bus object from getBus
     // inside that bus i get the route where the bus was going using getRoute
@@ -25,7 +21,7 @@ public class TicketGenerator {
     // im printing that time using datetimeformatter to get it in a defined pattern
     String date  = t.getBookingTime().format(DateTimeFormatter.ofPattern("dd MMM yyyy hh:mm a"));
 
-    return formatting_line+ "\n" +
+    return "=============================================" + "\n" +
             // prints each of these in new line
            "Ticket ID   : " + t.getTicketId()                          + "\n" +
            "Passenger   : " + t.getUser().getName()                    + "\n" +
@@ -37,6 +33,6 @@ public class TicketGenerator {
            // prints formatted price to 2 digits after decimal for formatting
            "Orig. Fare  : Rs." + String.format("%.2f", t.getOriginalFare()) + "\n" +
            "Amount Paid : Rs." + String.format("%.2f", t.getAmountPaid())   + "\n" +
-           formatting_line;
+           "=============================================";
     }
 }
