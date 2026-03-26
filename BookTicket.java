@@ -54,7 +54,10 @@ public class BookTicket {
             return null;  
         }
 
-        // step 2 - calculate how much to charge
+        // ill get these values to pass into the methods i made above
+        // get the route fare from bus class 
+        // ill enter the bus class and from there ill go into route
+        // from the route ill get its set fares
         double originalFare = bus.getRoute().getBaseFare();
         long daysLeft = ChronoUnit.DAYS.between(LocalDate.now(), travelDate);
         double finalFare = DiscountCalculator.applyDiscount(originalFare, daysLeft);
