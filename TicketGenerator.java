@@ -11,9 +11,18 @@ public class TicketGenerator {
 
         // making a line at top and bottom to make it look neater 
         // ive made the variable formatting_line so that i can use it in return operation
-        
+
     String formatting_line = "=============================================";
+    // to print the route Ive made the route variable
+    // I enter a bus object from getBus
+    // inside that bus i get the route where the bus was going using getRoute
+    // from that route i can get 2 infos
+    // origin and destination
+    // i'm repeating the same to get origin and destination one by one from route object
+    // i'm storing it in the route variable and returning this in this method
     String route = t.getBus().getRoute().getOrigin() + " → " + t.getBus().getRoute().getDestination();
+    // getting the booking time using the object t of Ticket class
+    // im printing that time using datetimeformatter to get it in a defined pattern
     String date  = t.getBookingTime().format(DateTimeFormatter.ofPattern("dd MMM yyyy hh:mm a"));
 
     return formatting_line+ "\n" +
