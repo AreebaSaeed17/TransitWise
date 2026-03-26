@@ -1,9 +1,6 @@
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
-// this is to use my data class and search in that
 import java.util.List;
-// this is to generate random digits as ticket id for user
-// this is to model ticketing apps like daewoo express
 import java.util.UUID;
 
 public class BookTicket {
@@ -60,10 +57,10 @@ public class BookTicket {
         // from the route ill get its set fares
         double originalFare = bus.getRoute().getBaseFare();
         long daysLeft = ChronoUnit.DAYS.between(LocalDate.now(), travelDate);
-        double finalFare = DiscountCalculator.applyDiscount(originalFare, daysLeft);
+        double finalFare = discountCalculator.applyDiscount(originalFare, daysLeft);
 
         // step 3 - deduct money from wallet
-        boolean paymentDone = walletService.deduct(user, finalFare);
+        boolean paymentDone = walletService.deductMoney(user, finalFare);
         if (!paymentDone) {
             return null;   // not enough balance, stop here
         }
@@ -84,6 +81,4 @@ public class BookTicket {
         // step 8 - return the completed ticket
         return ticket;
     }
-} {
-    
-}
+} 
