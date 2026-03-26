@@ -59,13 +59,16 @@ public class BookTicket {
         long daysLeft = ChronoUnit.DAYS.between(LocalDate.now(), travelDate);
         double finalFare = discountCalculator.applyDiscount(originalFare, daysLeft);
 
-        // step 3 - deduct money from wallet
+        // user buying ticket
         boolean paymentDone = walletService.deductMoney(user, finalFare);
+        // if money wasnt enough for transaction, payment didnt get done
+        // and false was returned and stored in the above var
+        // just stop here as no need for any other check
         if (!paymentDone) {
-            return null;   // not enough balance, stop here
+            return null;   
         }
 
-        // step 4 - mark seat as booked
+        // 
         bus.bookSeat(seatNo);
 
         // step 5 - generate unique ticket ID e.g. TW-A1B2C3D4
