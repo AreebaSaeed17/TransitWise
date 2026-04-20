@@ -44,9 +44,20 @@ public class Data {
         Route r21 = new Route("R21", "Karachi",    "Lahore",      7770, "04:00 PM");
         Route r22 = new Route("R22", "Faisalabad", "Lahore",       920, "08:00 AM");
 
+        // Extra buses for high-demand routes (different departure times)
+        Route r23 = new Route("R23", "Lahore",    "Karachi",      7770, "09:00 PM");
+        Route r24 = new Route("R24", "Lahore",    "Karachi",      7770, "11:00 PM");
+        Route r25 = new Route("R25", "Lahore",    "Islamabad",    2620, "02:00 PM");
+        Route r26 = new Route("R26", "Lahore",    "Islamabad",    2620, "08:00 PM");
+        Route r27 = new Route("R27", "Islamabad", "Lahore",       2620, "02:00 PM");
+        Route r28 = new Route("R28", "Islamabad", "Lahore",       2620, "09:00 PM");
+        Route r29 = new Route("R29", "Islamabad", "Peshawar",      960, "01:00 PM");
+        Route r30 = new Route("R30", "Karachi",   "Lahore",       7770, "09:00 PM");
+
         routes.addAll(Arrays.asList(
             r01,r02,r03,r04,r05,r06,r07,r08,r09,r10,
-            r11,r12,r13,r14,r15,r16,r17,r18,r19,r20,r21,r22
+            r11,r12,r13,r14,r15,r16,r17,r18,r19,r20,r21,r22,
+            r23,r24,r25,r26,r27,r28,r29,r30
         ));
 
         // One bus per route, 40 seats 
