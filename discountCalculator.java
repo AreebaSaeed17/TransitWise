@@ -26,6 +26,6 @@ public class discountCalculator {
         // getting discount value from the upper method
         double discount = calculateDiscount(daysAhead);
         // subtracting discount value from original fare
-        return (fare-=discount);
+       return fare * (1.0 - discount);
     }
 }
