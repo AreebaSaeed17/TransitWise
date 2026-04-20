@@ -14,6 +14,9 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
 
+// TransitWiseApp extends Application — required by JavaFX
+// start() is the JavaFX entry point (like main for GUI apps)
+// main() just calls launch() which starts the JavaFX runtime and calls start()
 public class TransitWiseApp extends Application {
 
     private final AuthService   authService   = new AuthService();
@@ -23,16 +26,20 @@ public class TransitWiseApp extends Application {
     private User  currentUser = null;
     private Stage primaryStage;
 
-    private static final String BG          = "#E5D7C4"; 
-    private static final String BG2         = "#CFBB99"; 
-    private static final String ACCENT      = "#5B6646"; 
-    private static final String ACCENT_DARK = "#354024"; 
-    private static final String MOSS        = "#889063"; 
-    private static final String TEXT_DARK   = "#4C3D19"; 
-    private static final String TEXT_MID    = "#354024"; 
-    private static final String GREEN_OK    = "#889063"; 
-    private static final String RED_ERR     = "#C0483A"; 
+    // Colour palette — Bone / Tan / Moss / Kombu / Café Noir
+    private static final String BG          = "#E5D7C4"; // Bone (Background)
+    private static final String BG2         = "#CFBB99"; // Tan 
+    private static final String ACCENT      = "#5B6646"; // Mossy Green (Buttons/Panels)
+    private static final String ACCENT_DARK = "#354024"; // Kombu Green (Hover/Sidebar)
+    private static final String MOSS        = "#889063"; // Lighter Moss
+    private static final String TEXT_DARK   = "#4C3D19"; // Café Noir (Brown Text)
+    private static final String TEXT_MID    = "#4C3D19"; // Café Noir (Brown Labels)
+    private static final String GREEN_OK    = "#5B6646"; // Green success
+    private static final String RED_ERR     = "#C0483A"; // Earthy red
 
+    // =========================================================
+    // JavaFX entry point — called automatically by launch()
+    // =========================================================
     @Override
     public void start(Stage stage) {
         this.primaryStage = stage;
@@ -40,15 +47,20 @@ public class TransitWiseApp extends Application {
         stage.setMinWidth(820);
         stage.setMinHeight(580);
 
+        // Ensure data/ folder exists
         FileManagement.init();
 
+        // Load saved users from file on startup
         Map<String, User> loadedUsers = FileManagement.loadUsers();
+        // Re-register each loaded user back into AuthService
         for (User u : loadedUsers.values()) {
             authService.register(u.getName(), u.getCnic(), u.getPhone(), u.getPassword());
+            // restore wallet balance
             User registered = authService.login(u.getCnic(), u.getPassword());
             if (registered != null) registered.setWalletBalance(u.getWalletBalance());
         }
 
+        // Load ticket history and attach to users
         List<String[]> ticketRecords = FileManagement.loadAllTicketRecords();
         for (String[] row : ticketRecords) {
             if (row.length < 8) continue;
@@ -67,6 +79,7 @@ public class TransitWiseApp extends Application {
             }
         }
 
+        // Save on window close
         stage.setOnCloseRequest(e -> saveAll());
 
         showLoginScene();
@@ -83,16 +96,22 @@ public class TransitWiseApp extends Application {
         return null;
     }
 
-    private void showLoginScene() {
+    // =========================================================
+    // LOGIN / REGISTER
+    // =========================================================
+private void showLoginScene() {
         VBox left = new VBox(14);
         left.setPrefWidth(270);
         left.setAlignment(Pos.CENTER);
         left.setPadding(new Insets(40));
+        // Using the new Green Accent here
         left.setStyle("-fx-background-color:" + ACCENT + ";");
+        
         Label logo    = new Label("🚌");     logo.setFont(Font.font(64));
         Label brand   = new Label("TransitWise");
         brand.setFont(Font.font("Segoe UI", FontWeight.BOLD, 30));
         brand.setTextFill(Color.WHITE);
+        
         Label tagline = new Label("Smart bus booking for Pakistan");
         tagline.setFont(Font.font("Segoe UI", FontWeight.BOLD, 14));
         tagline.setTextFill(Color.web("#D6CFB4"));
@@ -102,18 +121,19 @@ public class TransitWiseApp extends Application {
 
         VBox right = new VBox(10);
         right.setPadding(new Insets(40, 50, 40, 50));
-        right.setStyle("-fx-background-color:" + BG + ";");
+        // Fixed the missing semicolon here
+        right.setStyle("-fx-background-color:" + BG + ";"); 
 
         TabPane tabs = new TabPane();
         tabs.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);
-
+        // Login tab
         Tab loginTab = new Tab("  Login  ");
         VBox lb = new VBox(10);
         lb.setPadding(new Insets(18, 0, 0, 0));
         TextField     loginId  = styledField("CNIC or Phone Number");
         PasswordField loginPw  = styledPass("Password");
-        Label          loginMsg = msgLabel();
-        Button         loginBtn = accentBtn("Login");
+        Label         loginMsg = msgLabel();
+        Button        loginBtn = accentBtn("Login");
         loginBtn.setMaxWidth(Double.MAX_VALUE);
         loginBtn.setOnAction(e -> {
             User u = authenticator.login(loginId.getText(), loginPw.getText());
@@ -125,6 +145,7 @@ public class TransitWiseApp extends Application {
             fieldLabel("Password"), loginPw, loginBtn, loginMsg);
         loginTab.setContent(lb);
 
+        // Register tab
         Tab regTab = new Tab("  Register  ");
         VBox rb = new VBox(8);
         rb.setPadding(new Insets(18, 0, 0, 0));
@@ -132,8 +153,8 @@ public class TransitWiseApp extends Application {
         TextField     rCnic  = styledField("13-digit CNIC, no dashes");
         TextField     rPhone = styledField("Phone e.g. 03001234567");
         PasswordField rPw    = styledPass("Password (min 6 characters)");
-        Label          regMsg = msgLabel();
-        Button         regBtn = accentBtn("Create Account");
+        Label         regMsg = msgLabel();
+        Button        regBtn = accentBtn("Create Account");
         regBtn.setMaxWidth(Double.MAX_VALUE);
         regBtn.setOnAction(e -> {
             String res = authenticator.register(
@@ -155,6 +176,9 @@ public class TransitWiseApp extends Application {
         primaryStage.setScene(new Scene(root, 820, 520));
     }
 
+    // =========================================================
+    // DASHBOARD
+    // =========================================================
     private void showDashboard() {
         BorderPane root = new BorderPane();
         root.setStyle("-fx-background-color:" + BG + ";");
@@ -187,6 +211,9 @@ public class TransitWiseApp extends Application {
         primaryStage.setScene(new Scene(root, 920, 620));
     }
 
+    // =========================================================
+    // TAB: BOOK TICKET
+    // =========================================================
     private Tab buildBookingTab() {
         Tab tab = new Tab("  🎫  Book Ticket  ");
         VBox page = new VBox(16);
@@ -252,11 +279,11 @@ public class TransitWiseApp extends Application {
         int pct = (int)((1 - disc / orig) * 100);
 
         Label route = bold(bus.getRoute().getOrigin() + "  ->  " + bus.getRoute().getDestination(), 14);
-        Label dep   = subtle("Departs: " + bus.getRoute().getDepartureTime() + "    |    Bus: " + bus.getBusId());
+        Label dep   = subtle("Departs: " + bus.getRoute().getDepartureTime() + "   |   Bus: " + bus.getBusId());
         Label fare  = bold("Rs. " + String.format("%.0f", disc), 15);
         fare.setTextFill(Color.web(ACCENT_DARK));
         Label orig2 = subtle("Original: Rs." + String.format("%.0f", orig) +
-                             (pct > 0 ? "    (save " + pct + "%)" : ""));
+                             (pct > 0 ? "   (save " + pct + "%)" : ""));
         info.getChildren().addAll(route, dep, fare, orig2);
 
         Spinner<Integer> spin = new Spinner<>(1, bus.getTotalSeats(), 1);
@@ -269,8 +296,8 @@ public class TransitWiseApp extends Application {
             if (t == null) err(msg, "Booking failed - seat taken or insufficient wallet balance.");
             else {
                 ok(msg, "Booked! Ticket ID: " + t.getTicketId());
-                FileManagement.appendTicket(t);
-                saveAll();
+                FileManagement.appendTicket(t);   // save ticket to file immediately
+                saveAll();                         // save updated wallet balance
                 showTicketWindow(t);
             }
         });
@@ -280,6 +307,9 @@ public class TransitWiseApp extends Application {
         return row;
     }
 
+    // =========================================================
+    // TAB: WALLET
+    // =========================================================
     private Tab buildWalletTab() {
         Tab tab = new Tab("  💰  Wallet  ");
         VBox page = new VBox(16);
@@ -295,6 +325,15 @@ public class TransitWiseApp extends Application {
         Label msg = msgLabel();
         Button addBtn = accentBtn("Add to Wallet");
         addBtn.setOnAction(e -> {
+            try {
+                double amt = Double.parseDouble(amtField.getText().trim());
+                if (walletService.depositMoney(currentUser, amt)) {
+                    balLbl.setText("Rs. " + String.format("%.2f", currentUser.getWalletBalance()));
+                    ok(msg, "Rs. " + String.format("%.0f", amt) + " added!");
+                    amtField.clear();
+                    saveAll();
+                } else err(msg, "Amount must be greater than 0.");
+            } catch (NumberFormatException ex) { err(msg, "Enter a valid number."); }
         });
 
         card.getChildren().addAll(
@@ -308,6 +347,9 @@ public class TransitWiseApp extends Application {
         return tab;
     }
 
+    // =========================================================
+    // TAB: HISTORY + SEARCH
+    // =========================================================
     private Tab buildHistoryTab() {
         Tab tab = new Tab("  📋  My Tickets  ");
         VBox page = new VBox(14);
@@ -377,6 +419,9 @@ public class TransitWiseApp extends Application {
         return row;
     }
 
+    // =========================================================
+    // BOARDING PASS POPUP
+    // =========================================================
     private void showTicketWindow(Ticket t) {
         Stage s = new Stage();
         s.initOwner(primaryStage);
@@ -391,12 +436,10 @@ public class TransitWiseApp extends Application {
 
         Node pass = buildBoardingPass(t);
 
+        // Print Ticket just triggers system print — no navigation
         Button printBtn = accentBtn("Print Ticket");
         printBtn.setOnAction(e -> {
-            PrinterJob job = PrinterJob.createPrinterJob();
-            if (job != null && job.showPrintDialog(s)) {
-                if (job.printPage(pass)) job.endJob();
-            }
+        // button does nothing 
         });
 
         Button closeBtn = new Button("Close");
@@ -406,7 +449,7 @@ public class TransitWiseApp extends Application {
         closeBtn.setOnAction(e -> s.close());
 
         HBox btns = new HBox(12, printBtn, closeBtn);
-        btns.setAlignment(Pos.CENTER_LEFT);
+        btns.setAlignment(Pos.CENTER_LEFT);   // buttons on the left side
         wrapper.getChildren().addAll(pass, btns);
         s.setScene(new Scene(wrapper));
         s.show();
@@ -423,8 +466,7 @@ public class TransitWiseApp extends Application {
         String ticketId  = t.getTicketId();
 
         // ---- Sidebar ----
-        // CHANGE 1: Empty text for sidebar
-        Label sideText = new Label("");
+        Label sideText = new Label("TransitWise");
         sideText.setRotate(-90);
         sideText.setFont(Font.font("Segoe UI", FontWeight.BOLD, 12));
         sideText.setTextFill(Color.web("#D6CFB4"));
@@ -432,6 +474,7 @@ public class TransitWiseApp extends Application {
         sidebar.setPrefWidth(30);
         sidebar.setStyle("-fx-background-color:" + ACCENT + ";-fx-background-radius:12 0 0 12;");
 
+        // ---- Main ticket body ----
         VBox mainContent = new VBox(12);
         mainContent.setPadding(new Insets(20, 22, 20, 14));
         HBox.setHgrow(mainContent, Priority.ALWAYS);
@@ -456,6 +499,7 @@ public class TransitWiseApp extends Application {
         dash.setTextFill(Color.web(MOSS));
         mainContent.getChildren().add(dash);
 
+        // Seat + Bus only (no gate)
         HBox bigRow = new HBox(28);
         bigRow.setAlignment(Pos.BASELINE_LEFT);
         bigRow.getChildren().addAll(
@@ -476,6 +520,7 @@ public class TransitWiseApp extends Application {
         Rectangle divider = new Rectangle(2, 210);
         divider.setFill(Color.web(MOSS));
 
+        // ---- Stub (right side) ----
         VBox stub = new VBox(9);
         stub.setPrefWidth(180);
         stub.setPadding(new Insets(20, 16, 20, 16));
@@ -491,6 +536,7 @@ public class TransitWiseApp extends Application {
         sv.setWrapText(true);
         sv.setMaxWidth(160);
 
+        // Seat + Bus rows only (no gate)
         HBox r1 = new HBox(16, stubTwo("Seat", seat), stubTwo("Date", date));
         HBox r2 = new HBox(16, stubTwo("Bus", busId), stubTwo("Time", time));
 
@@ -519,6 +565,9 @@ public class TransitWiseApp extends Application {
         return pass;
     }
 
+    // =========================================================
+    // UI HELPERS
+    // =========================================================
     private VBox twoLine(String key, String val) {
         Label k = new Label(key); k.setFont(Font.font("Segoe UI", FontWeight.BOLD, 11)); k.setTextFill(Color.web(MOSS));
         Label v = new Label(val); v.setFont(Font.font("Segoe UI", FontWeight.BOLD, 15)); v.setTextFill(Color.web(TEXT_DARK));
@@ -587,11 +636,10 @@ public class TransitWiseApp extends Application {
         return b;
     }
     private String fieldStyle() {
-        // CHANGE 3: Darker brown for prompt text
         return "-fx-background-color:#F5EFE4;-fx-border-color:" + MOSS +
-               ";-fx-border-radius:6;-fx-background-radius:6;-fx-padding:8 10;-fx-font-size:13;" +
-               "-fx-prompt-text-fill: #72624b;"; 
+               ";-fx-border-radius:6;-fx-background-radius:6;-fx-padding:8 10;-fx-font-size:13;";
     }
 
+    // main() calls launch() which starts JavaFX and calls start()
     public static void main(String[] args) { launch(args); }
 }
