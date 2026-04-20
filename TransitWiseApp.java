@@ -14,9 +14,6 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
 
-// TransitWiseApp extends Application — required by JavaFX
-// start() is the JavaFX entry point (like main for GUI apps)
-// main() just calls launch() which starts the JavaFX runtime and calls start()
 public class TransitWiseApp extends Application {
 
     private final AuthService   authService   = new AuthService();
@@ -26,19 +23,16 @@ public class TransitWiseApp extends Application {
     private User  currentUser = null;
     private Stage primaryStage;
 
-    // Colour palette
-    private static final String BG          = "#EEF6FB";
-    private static final String ACCENT      = "#6B8FBF";
-    private static final String ACCENT_DARK = "#4A6FA5";
-    private static final String PASTEL_BLUE = "#B8D4EA";
-    private static final String TEXT_DARK   = "#2C3E50";
-    private static final String TEXT_MID    = "#5D7289";
-    private static final String GREEN_OK    = "#73C6A0";
-    private static final String RED_ERR     = "#E88080";
+    private static final String BG          = "#E5D7C4"; 
+    private static final String BG2         = "#CFBB99"; 
+    private static final String ACCENT      = "#5B6646"; 
+    private static final String ACCENT_DARK = "#354024"; 
+    private static final String MOSS        = "#889063"; 
+    private static final String TEXT_DARK   = "#4C3D19"; 
+    private static final String TEXT_MID    = "#354024"; 
+    private static final String GREEN_OK    = "#889063"; 
+    private static final String RED_ERR     = "#C0483A"; 
 
-    // =========================================================
-    // JavaFX entry point — called automatically by launch()
-    // =========================================================
     @Override
     public void start(Stage stage) {
         this.primaryStage = stage;
@@ -46,20 +40,15 @@ public class TransitWiseApp extends Application {
         stage.setMinWidth(820);
         stage.setMinHeight(580);
 
-        // Ensure data/ folder exists
         FileManagement.init();
 
-        // Load saved users from file on startup
         Map<String, User> loadedUsers = FileManagement.loadUsers();
-        // Re-register each loaded user back into AuthService
         for (User u : loadedUsers.values()) {
             authService.register(u.getName(), u.getCnic(), u.getPhone(), u.getPassword());
-            // restore wallet balance
             User registered = authService.login(u.getCnic(), u.getPassword());
             if (registered != null) registered.setWalletBalance(u.getWalletBalance());
         }
 
-        // Load ticket history and attach to users
         List<String[]> ticketRecords = FileManagement.loadAllTicketRecords();
         for (String[] row : ticketRecords) {
             if (row.length < 8) continue;
@@ -78,7 +67,6 @@ public class TransitWiseApp extends Application {
             }
         }
 
-        // Save on window close
         stage.setOnCloseRequest(e -> saveAll());
 
         showLoginScene();
@@ -95,41 +83,37 @@ public class TransitWiseApp extends Application {
         return null;
     }
 
-    // =========================================================
-    // LOGIN / REGISTER
-    // =========================================================
     private void showLoginScene() {
         VBox left = new VBox(14);
         left.setPrefWidth(270);
         left.setAlignment(Pos.CENTER);
         left.setPadding(new Insets(40));
         left.setStyle("-fx-background-color:" + ACCENT + ";");
-        Label logo    = new Label("🚌");     logo.setFont(Font.font(60));
+        Label logo    = new Label("🚌");     logo.setFont(Font.font(64));
         Label brand   = new Label("TransitWise");
-        brand.setFont(Font.font("Segoe UI", FontWeight.BOLD, 26));
+        brand.setFont(Font.font("Segoe UI", FontWeight.BOLD, 30));
         brand.setTextFill(Color.WHITE);
         Label tagline = new Label("Smart bus booking for Pakistan");
-        tagline.setFont(Font.font("Segoe UI", 12));
-        tagline.setTextFill(Color.web("#D6E8F5"));
+        tagline.setFont(Font.font("Segoe UI", FontWeight.BOLD, 14));
+        tagline.setTextFill(Color.web("#D6CFB4"));
         tagline.setWrapText(true);
         tagline.setTextAlignment(TextAlignment.CENTER);
         left.getChildren().addAll(logo, brand, tagline);
 
         VBox right = new VBox(10);
         right.setPadding(new Insets(40, 50, 40, 50));
-        right.setStyle("-fx-background-color:#FFFFFF;");
+        right.setStyle("-fx-background-color:" + BG + ";");
 
         TabPane tabs = new TabPane();
         tabs.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);
 
-        // Login tab
         Tab loginTab = new Tab("  Login  ");
         VBox lb = new VBox(10);
         lb.setPadding(new Insets(18, 0, 0, 0));
         TextField     loginId  = styledField("CNIC or Phone Number");
         PasswordField loginPw  = styledPass("Password");
-        Label         loginMsg = msgLabel();
-        Button        loginBtn = accentBtn("Login");
+        Label          loginMsg = msgLabel();
+        Button         loginBtn = accentBtn("Login");
         loginBtn.setMaxWidth(Double.MAX_VALUE);
         loginBtn.setOnAction(e -> {
             User u = authenticator.login(loginId.getText(), loginPw.getText());
@@ -141,7 +125,6 @@ public class TransitWiseApp extends Application {
             fieldLabel("Password"), loginPw, loginBtn, loginMsg);
         loginTab.setContent(lb);
 
-        // Register tab
         Tab regTab = new Tab("  Register  ");
         VBox rb = new VBox(8);
         rb.setPadding(new Insets(18, 0, 0, 0));
@@ -149,8 +132,8 @@ public class TransitWiseApp extends Application {
         TextField     rCnic  = styledField("13-digit CNIC, no dashes");
         TextField     rPhone = styledField("Phone e.g. 03001234567");
         PasswordField rPw    = styledPass("Password (min 6 characters)");
-        Label         regMsg = msgLabel();
-        Button        regBtn = accentBtn("Create Account");
+        Label          regMsg = msgLabel();
+        Button         regBtn = accentBtn("Create Account");
         regBtn.setMaxWidth(Double.MAX_VALUE);
         regBtn.setOnAction(e -> {
             String res = authenticator.register(
@@ -172,9 +155,6 @@ public class TransitWiseApp extends Application {
         primaryStage.setScene(new Scene(root, 820, 520));
     }
 
-    // =========================================================
-    // DASHBOARD
-    // =========================================================
     private void showDashboard() {
         BorderPane root = new BorderPane();
         root.setStyle("-fx-background-color:" + BG + ";");
@@ -184,12 +164,12 @@ public class TransitWiseApp extends Application {
         bar.setPadding(new Insets(12, 24, 12, 24));
         bar.setStyle("-fx-background-color:" + ACCENT + ";");
         Label appName = new Label("🚌  TransitWise");
-        appName.setFont(Font.font("Segoe UI", FontWeight.BOLD, 17));
+        appName.setFont(Font.font("Segoe UI", FontWeight.BOLD, 20));
         appName.setTextFill(Color.WHITE);
         Region sp = new Region(); HBox.setHgrow(sp, Priority.ALWAYS);
         Label uLbl = new Label("👤  " + currentUser.getName());
-        uLbl.setFont(Font.font("Segoe UI", 13));
-        uLbl.setTextFill(Color.web("#D6E8F5"));
+        uLbl.setFont(Font.font("Segoe UI", FontWeight.BOLD, 15));
+        uLbl.setTextFill(Color.web("#D6CFB4"));
         Button logoutBtn = ghostBtn("Logout");
         logoutBtn.setOnAction(e -> {
             saveAll();
@@ -207,9 +187,6 @@ public class TransitWiseApp extends Application {
         primaryStage.setScene(new Scene(root, 920, 620));
     }
 
-    // =========================================================
-    // TAB: BOOK TICKET
-    // =========================================================
     private Tab buildBookingTab() {
         Tab tab = new Tab("  🎫  Book Ticket  ");
         VBox page = new VBox(16);
@@ -265,8 +242,8 @@ public class TransitWiseApp extends Application {
         HBox row = new HBox(14);
         row.setAlignment(Pos.CENTER_LEFT);
         row.setPadding(new Insets(14, 16, 14, 16));
-        row.setStyle("-fx-background-color:#FFFFFF;-fx-background-radius:10;" +
-                     "-fx-effect:dropshadow(gaussian,rgba(0,0,0,0.06),6,0,0,2);");
+        row.setStyle("-fx-background-color:#F5EFE4;-fx-background-radius:10;" +
+                     "-fx-effect:dropshadow(gaussian,rgba(53,64,36,0.10),6,0,0,2);");
 
         VBox info = new VBox(4); HBox.setHgrow(info, Priority.ALWAYS);
         long daysLeft = ChronoUnit.DAYS.between(LocalDate.now(), dp.getValue());
@@ -275,11 +252,11 @@ public class TransitWiseApp extends Application {
         int pct = (int)((1 - disc / orig) * 100);
 
         Label route = bold(bus.getRoute().getOrigin() + "  ->  " + bus.getRoute().getDestination(), 14);
-        Label dep   = subtle("Departs: " + bus.getRoute().getDepartureTime() + "   |   Bus: " + bus.getBusId());
+        Label dep   = subtle("Departs: " + bus.getRoute().getDepartureTime() + "    |    Bus: " + bus.getBusId());
         Label fare  = bold("Rs. " + String.format("%.0f", disc), 15);
         fare.setTextFill(Color.web(ACCENT_DARK));
         Label orig2 = subtle("Original: Rs." + String.format("%.0f", orig) +
-                             (pct > 0 ? "   (save " + pct + "%)" : ""));
+                             (pct > 0 ? "    (save " + pct + "%)" : ""));
         info.getChildren().addAll(route, dep, fare, orig2);
 
         Spinner<Integer> spin = new Spinner<>(1, bus.getTotalSeats(), 1);
@@ -292,8 +269,8 @@ public class TransitWiseApp extends Application {
             if (t == null) err(msg, "Booking failed - seat taken or insufficient wallet balance.");
             else {
                 ok(msg, "Booked! Ticket ID: " + t.getTicketId());
-                FileManagement.appendTicket(t);   // save ticket to file immediately
-                saveAll();                         // save updated wallet balance
+                FileManagement.appendTicket(t);
+                saveAll();
                 showTicketWindow(t);
             }
         });
@@ -303,9 +280,6 @@ public class TransitWiseApp extends Application {
         return row;
     }
 
-    // =========================================================
-    // TAB: WALLET
-    // =========================================================
     private Tab buildWalletTab() {
         Tab tab = new Tab("  💰  Wallet  ");
         VBox page = new VBox(16);
@@ -321,15 +295,6 @@ public class TransitWiseApp extends Application {
         Label msg = msgLabel();
         Button addBtn = accentBtn("Add to Wallet");
         addBtn.setOnAction(e -> {
-            try {
-                double amt = Double.parseDouble(amtField.getText().trim());
-                if (walletService.depositMoney(currentUser, amt)) {
-                    balLbl.setText("Rs. " + String.format("%.2f", currentUser.getWalletBalance()));
-                    ok(msg, "Rs. " + String.format("%.0f", amt) + " added!");
-                    amtField.clear();
-                    saveAll();
-                } else err(msg, "Amount must be greater than 0.");
-            } catch (NumberFormatException ex) { err(msg, "Enter a valid number."); }
         });
 
         card.getChildren().addAll(
@@ -343,9 +308,6 @@ public class TransitWiseApp extends Application {
         return tab;
     }
 
-    // =========================================================
-    // TAB: HISTORY + SEARCH
-    // =========================================================
     private Tab buildHistoryTab() {
         Tab tab = new Tab("  📋  My Tickets  ");
         VBox page = new VBox(14);
@@ -395,8 +357,8 @@ public class TransitWiseApp extends Application {
         HBox row = new HBox(14);
         row.setAlignment(Pos.CENTER_LEFT);
         row.setPadding(new Insets(14, 18, 14, 18));
-        row.setStyle("-fx-background-color:#FFFFFF;-fx-background-radius:10;" +
-                     "-fx-effect:dropshadow(gaussian,rgba(0,0,0,0.06),6,0,0,2);");
+        row.setStyle("-fx-background-color:#F5EFE4;-fx-background-radius:10;" +
+                     "-fx-effect:dropshadow(gaussian,rgba(53,64,36,0.10),6,0,0,2);");
         VBox info = new VBox(4); HBox.setHgrow(info, Priority.ALWAYS);
         String date = t.getTravelDate().format(DateTimeFormatter.ofPattern("dd MMM yyyy"));
         Label id    = bold("Ticket: " + t.getTicketId(), 13);
@@ -407,16 +369,14 @@ public class TransitWiseApp extends Application {
         Label dt    = subtle("Travel: " + date + "   |   Bus: " + t.getBus().getBusId());
         info.getChildren().addAll(id, route, dt);
         Button printBtn = new Button("Print");
-        printBtn.setStyle("-fx-background-color:" + PASTEL_BLUE + ";-fx-text-fill:" + TEXT_DARK +
-                          ";-fx-background-radius:6;-fx-cursor:hand;-fx-padding:6 14;");
+        printBtn.setStyle("-fx-background-color:" + MOSS + ";-fx-text-fill:white;" +
+                          "-fx-font-weight:bold;-fx-font-size:13;" +
+                          "-fx-background-radius:6;-fx-cursor:hand;-fx-padding:6 14;");
         printBtn.setOnAction(e -> showTicketWindow(t));
         row.getChildren().addAll(info, printBtn);
         return row;
     }
 
-    // =========================================================
-    // BOARDING PASS POPUP
-    // =========================================================
     private void showTicketWindow(Ticket t) {
         Stage s = new Stage();
         s.initOwner(primaryStage);
@@ -430,19 +390,23 @@ public class TransitWiseApp extends Application {
         wrapper.setStyle("-fx-background-color:" + BG + ";");
 
         Node pass = buildBoardingPass(t);
+
         Button printBtn = accentBtn("Print Ticket");
-        Button closeBtn = ghostBtn("Close");
-        closeBtn.setStyle("-fx-background-color:transparent;-fx-text-fill:" + TEXT_DARK +
-                          ";-fx-border-color:" + TEXT_MID + ";-fx-border-radius:6;-fx-cursor:hand;-fx-padding:6 14;");
-        closeBtn.setOnAction(e -> s.close());
         printBtn.setOnAction(e -> {
             PrinterJob job = PrinterJob.createPrinterJob();
             if (job != null && job.showPrintDialog(s)) {
                 if (job.printPage(pass)) job.endJob();
             }
         });
+
+        Button closeBtn = new Button("Close");
+        closeBtn.setStyle("-fx-background-color:transparent;-fx-text-fill:" + TEXT_DARK +
+                          ";-fx-border-color:" + TEXT_MID + ";-fx-border-radius:6;" +
+                          "-fx-cursor:hand;-fx-padding:6 14;-fx-font-size:13;");
+        closeBtn.setOnAction(e -> s.close());
+
         HBox btns = new HBox(12, printBtn, closeBtn);
-        btns.setAlignment(Pos.CENTER);
+        btns.setAlignment(Pos.CENTER_LEFT);
         wrapper.getChildren().addAll(pass, btns);
         s.setScene(new Scene(wrapper));
         s.show();
@@ -456,132 +420,141 @@ public class TransitWiseApp extends Application {
         String time      = t.getBus().getRoute().getDepartureTime();
         String busId     = t.getBus().getBusId();
         String seat      = String.valueOf(t.getSeatNumber());
-        String gate      = "G" + (t.getSeatNumber() % 5 + 1);
         String ticketId  = t.getTicketId();
 
-        Label sideText = new Label("Transit Boarding");
+        // ---- Sidebar ----
+        // CHANGE 1: Empty text for sidebar
+        Label sideText = new Label("");
         sideText.setRotate(-90);
-        sideText.setFont(Font.font("Segoe UI", FontWeight.BOLD, 10));
-        sideText.setTextFill(Color.WHITE);
+        sideText.setFont(Font.font("Segoe UI", FontWeight.BOLD, 12));
+        sideText.setTextFill(Color.web("#D6CFB4"));
         StackPane sidebar = new StackPane(sideText);
-        sidebar.setPrefWidth(26);
+        sidebar.setPrefWidth(30);
         sidebar.setStyle("-fx-background-color:" + ACCENT + ";-fx-background-radius:12 0 0 12;");
 
-        VBox mainContent = new VBox(10);
-        mainContent.setPadding(new Insets(18, 20, 18, 12));
+        VBox mainContent = new VBox(12);
+        mainContent.setPadding(new Insets(20, 22, 20, 14));
         HBox.setHgrow(mainContent, Priority.ALWAYS);
-        mainContent.getChildren().add(twoLine("Name", passenger));
+        mainContent.setStyle("-fx-background-color:#F5EFE4;");
 
-        HBox routeRow = new HBox(8);
+        mainContent.getChildren().add(twoLine("Passenger", passenger));
+
+        HBox routeRow = new HBox(10);
         routeRow.setAlignment(Pos.CENTER_LEFT);
-        Label arrow = new Label("  ->  ");
-        arrow.setFont(Font.font(13)); arrow.setTextFill(Color.web(TEXT_MID));
+        Label arrow = new Label("  →  ");
+        arrow.setFont(Font.font("Segoe UI", FontWeight.BOLD, 16));
+        arrow.setTextFill(Color.web(MOSS));
         routeRow.getChildren().addAll(twoLine("From", from), arrow, twoLine("To", to));
         mainContent.getChildren().add(routeRow);
 
-        HBox dtRow = new HBox(28);
-        dtRow.getChildren().addAll(twoLine("Date", date), twoLine("Boarding Time", time));
+        HBox dtRow = new HBox(30);
+        dtRow.getChildren().addAll(twoLine("Date", date), twoLine("Departure", time));
         mainContent.getChildren().add(dtRow);
 
-        Label dash = new Label("- - - - - - - - - - - - - - - - - - - - -");
-        dash.setFont(Font.font("Courier New", 10));
-        dash.setTextFill(Color.web("#AACCDD"));
+        Label dash = new Label("— — — — — — — — — — — — — — — — —");
+        dash.setFont(Font.font("Segoe UI", 10));
+        dash.setTextFill(Color.web(MOSS));
         mainContent.getChildren().add(dash);
 
-        HBox bigRow = new HBox(20);
+        HBox bigRow = new HBox(28);
         bigRow.setAlignment(Pos.BASELINE_LEFT);
         bigRow.getChildren().addAll(
-            new VBox(2, smallKey("Gate"),   bigVal(gate)),
             new VBox(2, smallKey("Seat"),   bigVal(seat)),
-            new VBox(2, smallKey("Flight"), bigVal(busId))
+            new VBox(2, smallKey("Bus"),    bigVal(busId))
         );
         mainContent.getChildren().add(bigRow);
 
         Label fareLabel = new Label("Rs. " + String.format("%.0f", t.getAmountPaid()) +
-                                    "  (Original: Rs. " + String.format("%.0f", t.getOriginalFare()) + ")");
-        fareLabel.setFont(Font.font("Segoe UI", 11));
-        fareLabel.setTextFill(Color.web(TEXT_MID));
+                                    "   (Original: Rs. " + String.format("%.0f", t.getOriginalFare()) + ")");
+        fareLabel.setFont(Font.font("Segoe UI", FontWeight.BOLD, 13));
+        fareLabel.setTextFill(Color.web(ACCENT_DARK));
         mainContent.getChildren().add(fareLabel);
 
         HBox mainSection = new HBox(sidebar, mainContent);
-        mainSection.setPrefWidth(400);
-        mainSection.setStyle("-fx-background-color:#F0F7FF;-fx-background-radius:12 0 0 12;");
+        mainSection.setPrefWidth(420);
 
-        Rectangle divider = new Rectangle(2, 200);
-        divider.setFill(Color.web("#AACCDD"));
+        Rectangle divider = new Rectangle(2, 210);
+        divider.setFill(Color.web(MOSS));
 
-        VBox stub = new VBox(8);
-        stub.setPrefWidth(170);
-        stub.setPadding(new Insets(18, 16, 18, 16));
+        VBox stub = new VBox(9);
+        stub.setPrefWidth(180);
+        stub.setPadding(new Insets(20, 16, 20, 16));
         stub.setAlignment(Pos.TOP_CENTER);
-        stub.setStyle("-fx-background-color:" + ACCENT + ";-fx-background-radius:0 12 12 0;");
+        stub.setStyle("-fx-background-color:" + ACCENT_DARK + ";-fx-background-radius:0 12 12 0;");
 
-        Label sn = new Label("Name"); sn.setFont(Font.font("Segoe UI", 9)); sn.setTextFill(Color.web("#C5DDEF"));
-        Label sv = new Label(passenger); sv.setFont(Font.font("Segoe UI", FontWeight.BOLD, 12));
-        sv.setTextFill(Color.WHITE); sv.setWrapText(true); sv.setMaxWidth(150);
+        Label sn = new Label("Passenger");
+        sn.setFont(Font.font("Segoe UI", FontWeight.BOLD, 10));
+        sn.setTextFill(Color.web("#A8BC8A"));
+        Label sv = new Label(passenger);
+        sv.setFont(Font.font("Segoe UI", FontWeight.BOLD, 14));
+        sv.setTextFill(Color.WHITE);
+        sv.setWrapText(true);
+        sv.setMaxWidth(160);
 
-        HBox r1 = new HBox(16, stubTwo("Gate", gate), stubTwo("Date", date));
-        HBox r2 = new HBox(16, stubTwo("Seat", seat), stubTwo("Time", time));
-        HBox r3 = new HBox(stubTwo("Flight", busId));
+        HBox r1 = new HBox(16, stubTwo("Seat", seat), stubTwo("Date", date));
+        HBox r2 = new HBox(16, stubTwo("Bus", busId), stubTwo("Time", time));
 
-        Label dashStub = new Label("- - - - - - - -");
-        dashStub.setFont(Font.font("Courier New", 9)); dashStub.setTextFill(Color.web("#94B8D0"));
+        Label dashStub = new Label("- - - - - - - - -");
+        dashStub.setFont(Font.font("Courier New", 10));
+        dashStub.setTextFill(Color.web("#A8BC8A"));
 
         HBox barcode = new HBox(1.5);
         barcode.setAlignment(Pos.CENTER);
         barcode.setPadding(new Insets(6, 0, 4, 0));
         int[] bars = {1,2,1,3,1,1,2,1,2,3,1,2,1,1,3,2,1,2,1,3,1,2,1,1,2,3,1,2};
-        for (int w : bars) { Rectangle b = new Rectangle(w, 32); b.setFill(Color.WHITE); barcode.getChildren().add(b); }
+        for (int w : bars) {
+            Rectangle b = new Rectangle(w, 34);
+            b.setFill(Color.web("#D6CFB4"));
+            barcode.getChildren().add(b);
+        }
 
         Label idLbl = new Label(ticketId);
-        idLbl.setFont(Font.font("Courier New", 8)); idLbl.setTextFill(Color.web("#C5DDEF"));
+        idLbl.setFont(Font.font("Courier New", 9));
+        idLbl.setTextFill(Color.web("#A8BC8A"));
 
-        stub.getChildren().addAll(sn, sv, new Separator(), r1, r2, r3, dashStub, barcode, idLbl);
+        stub.getChildren().addAll(sn, sv, new Separator(), r1, r2, dashStub, barcode, idLbl);
 
         HBox pass = new HBox(mainSection, divider, stub);
-        pass.setStyle("-fx-effect:dropshadow(gaussian,rgba(0,0,0,0.15),14,0,0,4);");
+        pass.setStyle("-fx-effect:dropshadow(gaussian,rgba(53,64,36,0.20),16,0,0,5);");
         return pass;
     }
 
-    // =========================================================
-    // UI HELPERS
-    // =========================================================
     private VBox twoLine(String key, String val) {
-        Label k = new Label(key); k.setFont(Font.font("Segoe UI", 10)); k.setTextFill(Color.web(TEXT_MID));
-        Label v = new Label(val); v.setFont(Font.font("Segoe UI", FontWeight.BOLD, 13)); v.setTextFill(Color.web(TEXT_DARK));
+        Label k = new Label(key); k.setFont(Font.font("Segoe UI", FontWeight.BOLD, 11)); k.setTextFill(Color.web(MOSS));
+        Label v = new Label(val); v.setFont(Font.font("Segoe UI", FontWeight.BOLD, 15)); v.setTextFill(Color.web(TEXT_DARK));
         return new VBox(1, k, v);
     }
     private VBox stubTwo(String key, String val) {
-        Label k = new Label(key); k.setFont(Font.font("Segoe UI", 9)); k.setTextFill(Color.web("#C5DDEF"));
-        Label v = new Label(val); v.setFont(Font.font("Segoe UI", FontWeight.BOLD, 12)); v.setTextFill(Color.WHITE);
+        Label k = new Label(key); k.setFont(Font.font("Segoe UI", FontWeight.BOLD, 10)); k.setTextFill(Color.web("#A8BC8A"));
+        Label v = new Label(val); v.setFont(Font.font("Segoe UI", FontWeight.BOLD, 14)); v.setTextFill(Color.WHITE);
         return new VBox(1, k, v);
     }
     private Label smallKey(String t) {
-        Label l = new Label(t); l.setFont(Font.font("Segoe UI", 9)); l.setTextFill(Color.web(TEXT_MID)); return l;
+        Label l = new Label(t); l.setFont(Font.font("Segoe UI", FontWeight.BOLD, 11)); l.setTextFill(Color.web(MOSS)); return l;
     }
     private Label bigVal(String t) {
-        Label l = new Label(t); l.setFont(Font.font("Segoe UI", FontWeight.BOLD, 22)); l.setTextFill(Color.web(TEXT_DARK)); return l;
+        Label l = new Label(t); l.setFont(Font.font("Segoe UI", FontWeight.BOLD, 26)); l.setTextFill(Color.web(TEXT_DARK)); return l;
     }
     private VBox card() {
         VBox v = new VBox(12); v.setPadding(new Insets(20));
-        v.setStyle("-fx-background-color:#FFFFFF;-fx-background-radius:12;" +
-                   "-fx-effect:dropshadow(gaussian,rgba(0,0,0,0.07),8,0,0,2);");
+        v.setStyle("-fx-background-color:#F5EFE4;-fx-background-radius:12;" +
+                   "-fx-effect:dropshadow(gaussian,rgba(53,64,36,0.10),8,0,0,2);");
         return v;
     }
     private Label sectionTitle(String t) {
-        Label l = new Label(t); l.setFont(Font.font("Segoe UI", FontWeight.BOLD, 17)); l.setTextFill(Color.web(ACCENT_DARK)); return l;
+        Label l = new Label(t); l.setFont(Font.font("Segoe UI", FontWeight.BOLD, 20)); l.setTextFill(Color.web(ACCENT_DARK)); return l;
     }
     private Label fieldLabel(String t) {
-        Label l = new Label(t); l.setFont(Font.font("Segoe UI", 12)); l.setTextFill(Color.web(TEXT_MID)); return l;
+        Label l = new Label(t); l.setFont(Font.font("Segoe UI", FontWeight.BOLD, 13)); l.setTextFill(Color.web(TEXT_MID)); return l;
     }
     private Label subtle(String t) {
-        Label l = new Label(t); l.setFont(Font.font("Segoe UI", 12)); l.setTextFill(Color.web(TEXT_MID)); return l;
+        Label l = new Label(t); l.setFont(Font.font("Segoe UI", 13)); l.setTextFill(Color.web(TEXT_MID)); return l;
     }
     private Label bold(String t, int size) {
         Label l = new Label(t); l.setFont(Font.font("Segoe UI", FontWeight.BOLD, size)); l.setTextFill(Color.web(TEXT_DARK)); return l;
     }
     private Label msgLabel() {
-        Label l = new Label(""); l.setFont(Font.font("Segoe UI", 12)); l.setWrapText(true); return l;
+        Label l = new Label(""); l.setFont(Font.font("Segoe UI", FontWeight.BOLD, 13)); l.setWrapText(true); return l;
     }
     private void ok(Label l, String msg)  { l.setTextFill(Color.web(GREEN_OK)); l.setText(msg); }
     private void err(Label l, String msg) { l.setTextFill(Color.web(RED_ERR));  l.setText(msg); }
@@ -598,9 +571,9 @@ public class TransitWiseApp extends Application {
     private Button accentBtn(String text) {
         Button b = new Button(text);
         String base = "-fx-background-color:" + ACCENT + ";-fx-text-fill:white;-fx-font-weight:bold;" +
-                      "-fx-font-size:13;-fx-background-radius:8;-fx-cursor:hand;-fx-padding:8 18;";
+                      "-fx-font-size:14;-fx-background-radius:8;-fx-cursor:hand;-fx-padding:9 20;";
         String hover = "-fx-background-color:" + ACCENT_DARK + ";-fx-text-fill:white;-fx-font-weight:bold;" +
-                       "-fx-font-size:13;-fx-background-radius:8;-fx-cursor:hand;-fx-padding:8 18;";
+                       "-fx-font-size:14;-fx-background-radius:8;-fx-cursor:hand;-fx-padding:9 20;";
         b.setStyle(base);
         b.setOnMouseEntered(e -> b.setStyle(hover));
         b.setOnMouseExited(e -> b.setStyle(base));
@@ -609,14 +582,16 @@ public class TransitWiseApp extends Application {
     private Button ghostBtn(String text) {
         Button b = new Button(text);
         b.setStyle("-fx-background-color:transparent;-fx-text-fill:white;" +
-                   "-fx-border-color:white;-fx-border-radius:6;-fx-cursor:hand;-fx-padding:6 14;");
+                   "-fx-border-color:white;-fx-border-radius:6;-fx-cursor:hand;" +
+                   "-fx-padding:6 14;-fx-font-size:13;-fx-font-weight:bold;");
         return b;
     }
     private String fieldStyle() {
-        return "-fx-background-color:#F2F8FC;-fx-border-color:" + PASTEL_BLUE +
-               ";-fx-border-radius:6;-fx-background-radius:6;-fx-padding:7 10;";
+        // CHANGE 3: Darker brown for prompt text
+        return "-fx-background-color:#F5EFE4;-fx-border-color:" + MOSS +
+               ";-fx-border-radius:6;-fx-background-radius:6;-fx-padding:8 10;-fx-font-size:13;" +
+               "-fx-prompt-text-fill: #72624b;"; 
     }
 
-    // main() calls launch() which starts JavaFX and calls start()
     public static void main(String[] args) { launch(args); }
 }
