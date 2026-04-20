@@ -14,6 +14,9 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
 
+// TransitWiseApp extends Application — required by JavaFX
+// start() is the JavaFX entry point (like main for GUI apps)
+// main() just calls launch() which starts the JavaFX runtime and calls start()
 public class TransitWiseApp extends Application {
 
     private final AuthService   authService   = new AuthService();
@@ -33,6 +36,9 @@ public class TransitWiseApp extends Application {
     private static final String GREEN_OK    = "#73C6A0";
     private static final String RED_ERR     = "#E88080";
 
+    // =========================================================
+    // JavaFX entry point — called automatically by launch()
+    // =========================================================
     @Override
     public void start(Stage stage) {
         this.primaryStage = stage;
@@ -40,18 +46,53 @@ public class TransitWiseApp extends Application {
         stage.setMinWidth(820);
         stage.setMinHeight(580);
 
-        // Load saved data on startup
-        Map<String, User> loaded = FileHandler.loadUsers(authService);
-        FileHandler.loadTickets(loaded);
+        // Ensure data/ folder exists
+        FileManagement.init();
 
-        // Save on close
-        stage.setOnCloseRequest(e -> {
-            FileHandler.saveUsers(authService.getUsersByCnic());
-            FileHandler.saveTickets(authService.getUsersByCnic());
-        });
+        // Load saved users from file on startup
+        Map<String, User> loadedUsers = FileManagement.loadUsers();
+        // Re-register each loaded user back into AuthService
+        for (User u : loadedUsers.values()) {
+            authService.register(u.getName(), u.getCnic(), u.getPhone(), u.getPassword());
+            // restore wallet balance
+            User registered = authService.login(u.getCnic(), u.getPassword());
+            if (registered != null) registered.setWalletBalance(u.getWalletBalance());
+        }
+
+        // Load ticket history and attach to users
+        List<String[]> ticketRecords = FileManagement.loadAllTicketRecords();
+        for (String[] row : ticketRecords) {
+            if (row.length < 8) continue;
+            String cnic   = row[1];
+            String busId  = row[2];
+            int    seat   = Integer.parseInt(row[3]);
+            LocalDate date = LocalDate.parse(row[4]);
+            double origFare = Double.parseDouble(row[6]);
+            double paidFare = Double.parseDouble(row[7]);
+            String ticketId = row[0];
+
+            User u = authService.getUsersByCnic().get(cnic);
+            Bus  b = findBusById(busId);
+            if (u != null && b != null) {
+                u.addTicket(new Ticket(ticketId, u, b, seat, date, origFare, paidFare));
+            }
+        }
+
+        // Save on window close
+        stage.setOnCloseRequest(e -> saveAll());
 
         showLoginScene();
         stage.show();
+    }
+
+    private void saveAll() {
+        FileManagement.saveUsers(authService.getUsersByCnic().values());
+    }
+
+    private Bus findBusById(String busId) {
+        for (Bus b : Data.getAllBuses())
+            if (b.getBusId().equals(busId)) return b;
+        return null;
     }
 
     // =========================================================
@@ -81,7 +122,7 @@ public class TransitWiseApp extends Application {
         TabPane tabs = new TabPane();
         tabs.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);
 
-        // --- Login tab ---
+        // Login tab
         Tab loginTab = new Tab("  Login  ");
         VBox lb = new VBox(10);
         lb.setPadding(new Insets(18, 0, 0, 0));
@@ -100,7 +141,7 @@ public class TransitWiseApp extends Application {
             fieldLabel("Password"), loginPw, loginBtn, loginMsg);
         loginTab.setContent(lb);
 
-        // --- Register tab ---
+        // Register tab
         Tab regTab = new Tab("  Register  ");
         VBox rb = new VBox(8);
         rb.setPadding(new Insets(18, 0, 0, 0));
@@ -138,26 +179,24 @@ public class TransitWiseApp extends Application {
         BorderPane root = new BorderPane();
         root.setStyle("-fx-background-color:" + BG + ";");
 
-        // Top bar
         HBox bar = new HBox(12);
         bar.setAlignment(Pos.CENTER_LEFT);
         bar.setPadding(new Insets(12, 24, 12, 24));
         bar.setStyle("-fx-background-color:" + ACCENT + ";");
-        Label name = new Label("🚌  TransitWise");
-        name.setFont(Font.font("Segoe UI", FontWeight.BOLD, 17));
-        name.setTextFill(Color.WHITE);
+        Label appName = new Label("🚌  TransitWise");
+        appName.setFont(Font.font("Segoe UI", FontWeight.BOLD, 17));
+        appName.setTextFill(Color.WHITE);
         Region sp = new Region(); HBox.setHgrow(sp, Priority.ALWAYS);
         Label uLbl = new Label("👤  " + currentUser.getName());
         uLbl.setFont(Font.font("Segoe UI", 13));
         uLbl.setTextFill(Color.web("#D6E8F5"));
         Button logoutBtn = ghostBtn("Logout");
         logoutBtn.setOnAction(e -> {
-            FileHandler.saveUsers(authService.getUsersByCnic());
-            FileHandler.saveTickets(authService.getUsersByCnic());
+            saveAll();
             currentUser = null;
             showLoginScene();
         });
-        bar.getChildren().addAll(name, sp, uLbl, logoutBtn);
+        bar.getChildren().addAll(appName, sp, uLbl, logoutBtn);
         root.setTop(bar);
 
         TabPane tabs = new TabPane();
@@ -173,7 +212,6 @@ public class TransitWiseApp extends Application {
     // =========================================================
     private Tab buildBookingTab() {
         Tab tab = new Tab("  🎫  Book Ticket  ");
-
         VBox page = new VBox(16);
         page.setPadding(new Insets(24));
         page.setStyle("-fx-background-color:" + BG + ";");
@@ -216,7 +254,6 @@ public class TransitWiseApp extends Application {
 
         card.getChildren().addAll(grid, searchBtn, searchMsg);
         page.getChildren().addAll(card, results);
-
         ScrollPane scroll = new ScrollPane(page);
         scroll.setFitToWidth(true);
         scroll.setStyle("-fx-background-color:" + BG + ";-fx-background:" + BG + ";");
@@ -255,9 +292,8 @@ public class TransitWiseApp extends Application {
             if (t == null) err(msg, "Booking failed - seat taken or insufficient wallet balance.");
             else {
                 ok(msg, "Booked! Ticket ID: " + t.getTicketId());
-                // Save immediately after booking
-                FileHandler.saveUsers(authService.getUsersByCnic());
-                FileHandler.saveTickets(authService.getUsersByCnic());
+                FileManagement.appendTicket(t);   // save ticket to file immediately
+                saveAll();                         // save updated wallet balance
                 showTicketWindow(t);
             }
         });
@@ -291,7 +327,7 @@ public class TransitWiseApp extends Application {
                     balLbl.setText("Rs. " + String.format("%.2f", currentUser.getWalletBalance()));
                     ok(msg, "Rs. " + String.format("%.0f", amt) + " added!");
                     amtField.clear();
-                    FileHandler.saveUsers(authService.getUsersByCnic());
+                    saveAll();
                 } else err(msg, "Amount must be greater than 0.");
             } catch (NumberFormatException ex) { err(msg, "Enter a valid number."); }
         });
@@ -312,29 +348,23 @@ public class TransitWiseApp extends Application {
     // =========================================================
     private Tab buildHistoryTab() {
         Tab tab = new Tab("  📋  My Tickets  ");
-
         VBox page = new VBox(14);
         page.setPadding(new Insets(24));
         page.setStyle("-fx-background-color:" + BG + ";");
-
         page.getChildren().add(sectionTitle("My Booking History"));
 
-        // Search bar
-        TextField searchField = styledField("Search by city, ticket ID, date...");
+        TextField searchField = styledField("Search by city, ticket ID, bus, date...");
         searchField.setMaxWidth(Double.MAX_VALUE);
 
-        // Results container
         VBox results = new VBox(10);
         populateHistory(results, currentUser.getHistory(), "");
 
-        // Live search on every keystroke
         searchField.textProperty().addListener((obs, oldVal, newVal) -> {
             results.getChildren().clear();
             populateHistory(results, currentUser.getHistory(), newVal.trim().toLowerCase());
         });
 
         page.getChildren().addAll(searchField, results);
-
         ScrollPane scroll = new ScrollPane(page);
         scroll.setFitToWidth(true);
         scroll.setStyle("-fx-background-color:" + BG + ";-fx-background:" + BG + ";");
@@ -344,20 +374,15 @@ public class TransitWiseApp extends Application {
 
     private void populateHistory(VBox container, List<Ticket> tickets, String query) {
         if (tickets.isEmpty()) {
-            container.getChildren().add(subtle("No tickets booked yet."));
-            return;
+            container.getChildren().add(subtle("No tickets booked yet.")); return;
         }
         boolean any = false;
         for (Ticket t : tickets) {
-            // Build searchable string from ticket fields
-            String searchable = (
-                t.getTicketId() + " " +
+            String searchable = (t.getTicketId() + " " +
                 t.getBus().getRoute().getOrigin() + " " +
                 t.getBus().getRoute().getDestination() + " " +
                 t.getTravelDate().toString() + " " +
-                t.getBus().getBusId()
-            ).toLowerCase();
-
+                t.getBus().getBusId()).toLowerCase();
             if (query.isEmpty() || searchable.contains(query)) {
                 container.getChildren().add(buildHistoryRow(t));
                 any = true;
@@ -372,7 +397,6 @@ public class TransitWiseApp extends Application {
         row.setPadding(new Insets(14, 18, 14, 18));
         row.setStyle("-fx-background-color:#FFFFFF;-fx-background-radius:10;" +
                      "-fx-effect:dropshadow(gaussian,rgba(0,0,0,0.06),6,0,0,2);");
-
         VBox info = new VBox(4); HBox.setHgrow(info, Priority.ALWAYS);
         String date = t.getTravelDate().format(DateTimeFormatter.ofPattern("dd MMM yyyy"));
         Label id    = bold("Ticket: " + t.getTicketId(), 13);
@@ -380,14 +404,12 @@ public class TransitWiseApp extends Application {
                              t.getBus().getRoute().getDestination() +
                              "  |  Seat: " + t.getSeatNumber() +
                              "  |  Rs. " + String.format("%.0f", t.getAmountPaid()));
-        Label dt    = subtle("Travel Date: " + date + "   |   Bus: " + t.getBus().getBusId());
+        Label dt    = subtle("Travel: " + date + "   |   Bus: " + t.getBus().getBusId());
         info.getChildren().addAll(id, route, dt);
-
         Button printBtn = new Button("Print");
         printBtn.setStyle("-fx-background-color:" + PASTEL_BLUE + ";-fx-text-fill:" + TEXT_DARK +
                           ";-fx-background-radius:6;-fx-cursor:hand;-fx-padding:6 14;");
         printBtn.setOnAction(e -> showTicketWindow(t));
-
         row.getChildren().addAll(info, printBtn);
         return row;
     }
@@ -408,9 +430,10 @@ public class TransitWiseApp extends Application {
         wrapper.setStyle("-fx-background-color:" + BG + ";");
 
         Node pass = buildBoardingPass(t);
-
         Button printBtn = accentBtn("Print Ticket");
         Button closeBtn = ghostBtn("Close");
+        closeBtn.setStyle("-fx-background-color:transparent;-fx-text-fill:" + TEXT_DARK +
+                          ";-fx-border-color:" + TEXT_MID + ";-fx-border-radius:6;-fx-cursor:hand;-fx-padding:6 14;");
         closeBtn.setOnAction(e -> s.close());
         printBtn.setOnAction(e -> {
             PrinterJob job = PrinterJob.createPrinterJob();
@@ -420,7 +443,6 @@ public class TransitWiseApp extends Application {
         });
         HBox btns = new HBox(12, printBtn, closeBtn);
         btns.setAlignment(Pos.CENTER);
-
         wrapper.getChildren().addAll(pass, btns);
         s.setScene(new Scene(wrapper));
         s.show();
@@ -437,7 +459,6 @@ public class TransitWiseApp extends Application {
         String gate      = "G" + (t.getSeatNumber() % 5 + 1);
         String ticketId  = t.getTicketId();
 
-        // --- Left main section ---
         Label sideText = new Label("Transit Boarding");
         sideText.setRotate(-90);
         sideText.setFont(Font.font("Segoe UI", FontWeight.BOLD, 10));
@@ -449,11 +470,8 @@ public class TransitWiseApp extends Application {
         VBox mainContent = new VBox(10);
         mainContent.setPadding(new Insets(18, 20, 18, 12));
         HBox.setHgrow(mainContent, Priority.ALWAYS);
-
-        // Name
         mainContent.getChildren().add(twoLine("Name", passenger));
 
-        // From / To
         HBox routeRow = new HBox(8);
         routeRow.setAlignment(Pos.CENTER_LEFT);
         Label arrow = new Label("  ->  ");
@@ -461,18 +479,15 @@ public class TransitWiseApp extends Application {
         routeRow.getChildren().addAll(twoLine("From", from), arrow, twoLine("To", to));
         mainContent.getChildren().add(routeRow);
 
-        // Date / Time
         HBox dtRow = new HBox(28);
         dtRow.getChildren().addAll(twoLine("Date", date), twoLine("Boarding Time", time));
         mainContent.getChildren().add(dtRow);
 
-        // Dashed line
         Label dash = new Label("- - - - - - - - - - - - - - - - - - - - -");
         dash.setFont(Font.font("Courier New", 10));
         dash.setTextFill(Color.web("#AACCDD"));
         mainContent.getChildren().add(dash);
 
-        // Gate / Seat / Flight big text
         HBox bigRow = new HBox(20);
         bigRow.setAlignment(Pos.BASELINE_LEFT);
         bigRow.getChildren().addAll(
@@ -482,7 +497,6 @@ public class TransitWiseApp extends Application {
         );
         mainContent.getChildren().add(bigRow);
 
-        // Fare
         Label fareLabel = new Label("Rs. " + String.format("%.0f", t.getAmountPaid()) +
                                     "  (Original: Rs. " + String.format("%.0f", t.getOriginalFare()) + ")");
         fareLabel.setFont(Font.font("Segoe UI", 11));
@@ -493,11 +507,9 @@ public class TransitWiseApp extends Application {
         mainSection.setPrefWidth(400);
         mainSection.setStyle("-fx-background-color:#F0F7FF;-fx-background-radius:12 0 0 12;");
 
-        // --- Divider ---
         Rectangle divider = new Rectangle(2, 200);
         divider.setFill(Color.web("#AACCDD"));
 
-        // --- Right stub ---
         VBox stub = new VBox(8);
         stub.setPrefWidth(170);
         stub.setPadding(new Insets(18, 16, 18, 16));
@@ -573,7 +585,6 @@ public class TransitWiseApp extends Application {
     }
     private void ok(Label l, String msg)  { l.setTextFill(Color.web(GREEN_OK)); l.setText(msg); }
     private void err(Label l, String msg) { l.setTextFill(Color.web(RED_ERR));  l.setText(msg); }
-
     private TextField styledField(String prompt) {
         TextField f = new TextField(); f.setPromptText(prompt); f.setStyle(fieldStyle()); f.setMaxWidth(Double.MAX_VALUE); return f;
     }
@@ -586,12 +597,13 @@ public class TransitWiseApp extends Application {
     }
     private Button accentBtn(String text) {
         Button b = new Button(text);
-        b.setStyle("-fx-background-color:" + ACCENT + ";-fx-text-fill:white;-fx-font-weight:bold;" +
-                   "-fx-font-size:13;-fx-background-radius:8;-fx-cursor:hand;-fx-padding:8 18;");
-        b.setOnMouseEntered(e -> b.setStyle("-fx-background-color:" + ACCENT_DARK + ";-fx-text-fill:white;-fx-font-weight:bold;" +
-                   "-fx-font-size:13;-fx-background-radius:8;-fx-cursor:hand;-fx-padding:8 18;"));
-        b.setOnMouseExited(e -> b.setStyle("-fx-background-color:" + ACCENT + ";-fx-text-fill:white;-fx-font-weight:bold;" +
-                   "-fx-font-size:13;-fx-background-radius:8;-fx-cursor:hand;-fx-padding:8 18;"));
+        String base = "-fx-background-color:" + ACCENT + ";-fx-text-fill:white;-fx-font-weight:bold;" +
+                      "-fx-font-size:13;-fx-background-radius:8;-fx-cursor:hand;-fx-padding:8 18;";
+        String hover = "-fx-background-color:" + ACCENT_DARK + ";-fx-text-fill:white;-fx-font-weight:bold;" +
+                       "-fx-font-size:13;-fx-background-radius:8;-fx-cursor:hand;-fx-padding:8 18;";
+        b.setStyle(base);
+        b.setOnMouseEntered(e -> b.setStyle(hover));
+        b.setOnMouseExited(e -> b.setStyle(base));
         return b;
     }
     private Button ghostBtn(String text) {
@@ -605,5 +617,6 @@ public class TransitWiseApp extends Application {
                ";-fx-border-radius:6;-fx-background-radius:6;-fx-padding:7 10;";
     }
 
+    // main() calls launch() which starts JavaFX and calls start()
     public static void main(String[] args) { launch(args); }
 }

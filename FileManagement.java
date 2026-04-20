@@ -1,4 +1,4 @@
-// importing the classes for file handling
+// this is the class for handling data and booking history
 import java.io.*;
 import java.util.*;
 

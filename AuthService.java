@@ -6,9 +6,8 @@ public class AuthService {
     // Key = CNIC string, value = User object
     private Map<String, User> usersByCnic  = new HashMap<>();
     private Map<String, User> usersByPhone = new HashMap<>();
-    // method to hold data in register
+
     public boolean register(String name, String cnic, String phone, String password) {
-        // Basic validation
         if (usersByCnic.containsKey(cnic)) return false; // already registered
         User newUser = new User(name, cnic, phone, password);
         usersByCnic.put(cnic, newUser);
@@ -23,4 +22,9 @@ public class AuthService {
         if (u != null && u.getPassword().equals(password)) return u;
         return null; // login failed
     }
-} 
+
+    // Used by TransitWiseApp gui class to restore users from file on startup
+    public Map<String, User> getUsersByCnic() {
+        return usersByCnic;
+    }
+}
