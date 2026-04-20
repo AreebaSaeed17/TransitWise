@@ -112,7 +112,7 @@ private void showLoginScene() {
         brand.setFont(Font.font("Segoe UI", FontWeight.BOLD, 30));
         brand.setTextFill(Color.WHITE);
         
-        Label tagline = new Label("Smart bus booking for Pakistan");
+        Label tagline = new Label("Every mile, simplified");
         tagline.setFont(Font.font("Segoe UI", FontWeight.BOLD, 14));
         tagline.setTextFill(Color.web("#D6CFB4"));
         tagline.setWrapText(true);
