@@ -2,6 +2,8 @@
 
 > **OOP Semester 2 Project** | Java + JavaFX
 
+**Areeba Saeed** — Semester 2 OOP Project, 2025
+
 TransitWise is a desktop bus ticket booking application built with JavaFX. It lets passengers register, search buses across major Pakistani cities, book seats using a digital wallet, and view a full booking history.
 
 Route data is sourced and fetched from the **Daewoo Express** booking app.
@@ -39,13 +41,13 @@ TransitWise/
 ├── Ticket.java              # Confirmed booking record
 │
 ├── AuthService.java         # User registry (HashMap-backed)
-├── Authenticator.java       # Input validation + registration/login facade
-├── WalletService.java       # Deposit and deduction logic
-├── BookTicket.java          # Booking workflow orchestrator
+├── Authenticator.java       # Input validation + registration/login process
+├── WalletService.java       # Deposit and deduction logic (not linked to any banking service)
+├── BookTicket.java          # Booking workflow managing class
 ├── discountCalculator.java  # Early-booking discount algorithm
 │
-├── Data.java                # Static route & bus catalogue (30 routes)
-├── FileManagement.java      # Flat-file persistence
+├── Data.java                # Routes & buses info (30 routes)
+├── FileManagement.java      # File persistence
 ├── TicketGenerator.java     # Plain-text ticket formatter
 │
 └── data/
@@ -59,8 +61,8 @@ TransitWise/
 
 | Concept | Where Applied |
 |---|---|
-| Encapsulation | All classes — private fields, public getters/setters |
-| Abstraction | Service classes hide logic behind simple method calls |
+| Encapsulation | All classes have private fields, public getters/setters |
+| Abstraction | Service classes hide complex logic behind simple method calls |
 | Composition | Ticket has-a User and has-a Bus; Bus has-a Route |
 | Single Responsibility | Each class has one clearly defined job |
 | Static Utility Classes | `Data` and `discountCalculator` |
@@ -93,9 +95,6 @@ javac --module-path /path/to/javafx/lib --add-modules javafx.controls,javafx.fxm
 # Run
 java --module-path /path/to/javafx/lib --add-modules javafx.controls,javafx.fxml TransitWiseApp
 ```
-
-> If you're using an IDE (IntelliJ / Eclipse), add the JavaFX SDK as a library and set the VM options above in your run configuration.
-
 ---
 
 ## Data Persistence
@@ -106,14 +105,9 @@ java --module-path /path/to/javafx/lib --add-modules javafx.controls,javafx.fxml
 
 ---
 
-## Known Limitations
+## Current Limitations and Future Enhancements
 
-- The **Print Ticket** button opens the boarding pass popup but does not send to a printer (JavaFX PrinterJob not yet wired up)
+- The **Print Ticket** button opens the boarding pass popup but does not send to a printer (JavaFX PrinterJob isnt linked to the button)
 - **Seat maps reset on restart** — booked seats are not persisted between sessions
-- Class name `discountCalculator` should be `DiscountCalculator` per Java naming conventions
-
 ---
 
-## Author
-
-**Areeba Saeed** — Semester 2 OOP Project, 2025
