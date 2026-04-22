@@ -10,6 +10,7 @@ Route data is sourced and fetched from the **Daewoo Express** booking app.
 
 ---
 
+
 ## Features
 
 - **User Registration & Login** — Users register with CNIC & phone both; log in using either
@@ -30,6 +31,7 @@ Lahore · Karachi · Islamabad · Rawalpindi · Peshawar · Multan · Faisalabad
 ---
 
 ## Project Structure
+
 
 ```
 TransitWise/
@@ -65,7 +67,7 @@ TransitWise/
 | Abstraction | Service classes hide complex logic behind simple method calls |
 | Composition | Ticket has-a User and has-a Bus; Bus has-a Route |
 | Single Responsibility | Each class has one clearly defined job |
-| Static Utility Classes | `Data` and `discountCalculator` |
+| Static Utility Classes | `Data` and `DiscountCalculator` |
 | Collections & Generics | `HashMap`, `ArrayList`, `LinkedHashSet` |
 
 ---
