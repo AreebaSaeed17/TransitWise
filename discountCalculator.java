@@ -1,5 +1,5 @@
 // class to implement algorithm for discounting
-public class discountCalculator {
+public class DiscountCalculator {
     // it checks how many days ahead of the bus departure it was bought
     // based on early booking, it offers discount
     public static double calculateDiscount(long daysAhead) {

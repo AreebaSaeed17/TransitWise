@@ -34,7 +34,7 @@ public class BookTicket {
         in discount class 
         it uses the method from that class and days left are passed using above variable
         */
-        double discountedFare = discountCalculator.applyDiscount(baseFare, daysLeft);
+        double discountedFare = DiscountCalculator.applyDiscount(baseFare, daysLeft);
         // simply return the discounted price
         return discountedFare;
     }
@@ -57,7 +57,7 @@ public class BookTicket {
         // from the route ill get its set fares
         double originalFare = bus.getRoute().getBaseFare();
         long daysLeft = ChronoUnit.DAYS.between(LocalDate.now(), travelDate);
-        double finalFare = discountCalculator.applyDiscount(originalFare, daysLeft);
+        double finalFare = DiscountCalculator.applyDiscount(originalFare, daysLeft);
 
         // user buying ticket
         boolean paymentDone = walletService.deductMoney(user, finalFare);
