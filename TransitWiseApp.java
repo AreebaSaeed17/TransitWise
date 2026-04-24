@@ -256,8 +256,8 @@ private void showLoginScene() {
                 results.getChildren().add(buildBusRow(b, dp, searchMsg));
         });
 
-        card.getChildren().addAll(grid, searchBtn, searchMsg);
-        page.getChildren().addAll(card, results);
+        card.getChildren().addAll(grid, searchBtn, searchMsg, results);
+        page.getChildren().add(card);
         ScrollPane scroll = new ScrollPane(page);
         scroll.setFitToWidth(true);
         scroll.setStyle("-fx-background-color:" + BG + ";-fx-background:" + BG + ";");
