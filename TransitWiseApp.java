@@ -25,6 +25,7 @@ public class TransitWiseApp extends Application {
     private final BookTicket    bookTicket    = new BookTicket(walletService);
     private User  currentUser = null;
     private Stage primaryStage;
+    private Label walletBalanceLabel = new Label();
 
     // Colour palette — Bone / Tan / Moss / Kombu / Café Noir
     private static final String BG          = "#E5D7C4"; // Bone (Background)
@@ -275,7 +276,7 @@ private void showLoginScene() {
         VBox info = new VBox(4); HBox.setHgrow(info, Priority.ALWAYS);
         long daysLeft = ChronoUnit.DAYS.between(LocalDate.now(), dp.getValue());
         double orig = bus.getRoute().getBaseFare();
-        double disc = discountCalculator.applyDiscount(orig, daysLeft);
+        double disc = DiscountCalculator.applyDiscount(orig, daysLeft);
         int pct = (int)((1 - disc / orig) * 100);
 
         Label route = bold(bus.getRoute().getOrigin() + "  ->  " + bus.getRoute().getDestination(), 14);
@@ -295,10 +296,12 @@ private void showLoginScene() {
             Ticket t = bookTicket.bookTicket(currentUser, bus, spin.getValue(), dp.getValue());
             if (t == null) err(msg, "Booking failed - seat taken or insufficient wallet balance.");
             else {
-                ok(msg, "Booked! Ticket ID: " + t.getTicketId());
-                FileManagement.appendTicket(t);   // save ticket to file immediately
-                saveAll();                         // save updated wallet balance
-                showTicketWindow(t);
+                ok(msg, "Booked! Ticket ID: " + t.getTicketId() + 
+            "  |  Wallet: Rs." + String.format("%.0f", currentUser.getWalletBalance()));
+            FileManagement.appendTicket(t);
+            saveAll();
+            walletBalanceLabel.setText("Rs. " + String.format("%.2f", currentUser.getWalletBalance()));
+            showTicketWindow(t);
             }
         });
 
@@ -317,7 +320,8 @@ private void showLoginScene() {
         page.setStyle("-fx-background-color:" + BG + ";");
 
         VBox card = card();
-        Label balLbl = new Label("Rs. " + String.format("%.2f", currentUser.getWalletBalance()));
+        walletBalanceLabel = new Label("Rs. " + String.format("%.2f", currentUser.getWalletBalance()));
+        Label balLbl = walletBalanceLabel;
         balLbl.setFont(Font.font("Segoe UI", FontWeight.BOLD, 38));
         balLbl.setTextFill(Color.web(ACCENT_DARK));
 
